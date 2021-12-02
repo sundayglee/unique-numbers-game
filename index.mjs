@@ -40,10 +40,10 @@ const numOfPlayers = 10;
   }
 
   var playingSet = randomArray(5, 100);
-  console.log(playingSet);
+
+  console.log('Initial Unique Number Set is: ' + playingSet);
 
   var playedDeck = [];
-
 
   var winnersTotal = 0;
   var played = false;
@@ -53,6 +53,7 @@ const numOfPlayers = 10;
       ...stdlib.hasRandom,
       ...stdlib.hasConsoleLogger,
       wager: wager,
+      deadline: stdlib.connector === 'ALGO' ? 4 : 8,
       roundWinnerWas: (d) => {
         console.log("House Winner");
         played = true;
@@ -124,12 +125,7 @@ const numOfPlayers = 10;
       return backend.Player(ctcPlayer, {
         ...stdlib.hasRandom,
         ...stdlib.hasConsoleLogger,
-        acceptWager: (wager) => {
-          console.log(`${plyOnHand.addr} accepted, wager: ${wager}`);
-        },
-
         currentPlayedIs: (d) => {
-          // console.log(d);
           if (!playedDeck.includes(plyOnHand)) {
             playedDeck.push(plyOnHand)
             console.log(`${plyOnHand.addr} played ${plyOnHand.selected}`);
@@ -144,7 +140,6 @@ const numOfPlayers = 10;
           }
         },
         uniqueSelected: () => {
-          // console.log(plyOnHand)
           return plyOnHand;
         }
       });

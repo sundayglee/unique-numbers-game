@@ -2,34 +2,33 @@
 
 const NUM_OF_PLAYERS = 10;
 
+const CommonInterface = {
+  kpGoing: Fun([], Bool),
+  uniqueSelected: Fun([], Object({ addr: Address, selected: UInt, played: Bool })),
+  currentPlayedIs: Fun(true, UInt),
+  log: Fun(true, Null),
+};
+
 export const main = Reach.App(() => {
   const H = Participant('House', {
-    wager: UInt,
-    log: Fun(true, Null),
-    currentPlayedIs: Fun(true, UInt),
-    kpGoing: Fun([], Bool),
+    ...CommonInterface,
+    wager: UInt,  
+    deadline: UInt,
     playingSet: Fun([], Array(UInt, 5)),
-    uniqueSelected: Fun([], Object({ addr: Address, selected: UInt, played: Bool })),
     winnersList: Fun([], Array(Object({ addr: Address, selected: UInt, played: Bool, numOfWinners: UInt }), NUM_OF_PLAYERS)),
   });
   const P = ParticipantClass('Player', {
-    acceptWager: Fun([UInt], Null),
-    log: Fun(true, Null),
-    currentPlayedIs: Fun(true, UInt),
-    kpGoing: Fun([], Bool),
-    uniqueSelected: Fun([], Object({ addr: Address, selected: UInt, played: Bool })),
+    ...CommonInterface,
   });
   deploy();
 
   H.only(() => {
     const wager = declassify(interact.wager);
     const playingSet = declassify(interact.playingSet());
+    const deadline = declassify(interact.deadline);
   });
 
-  H.publish(wager)
-  commit();
-
-  H.publish(playingSet);
+  H.publish(wager, playingSet, deadline);
 
   /// parallelReduce
   const initialPlayedSet = Array.replicate(NUM_OF_PLAYERS, { addr: H, choice: 0 });
@@ -59,7 +58,7 @@ export const main = Reach.App(() => {
 
           return [true, 1 + bidsPlaced, newResponse];
         }))
-      .timeout(relativeTime(20), () => {
+      .timeout(relativeTime(deadline), () => {
         Anybody.publish();
         return [false, bidsPlaced, finalPlayed];
       });
