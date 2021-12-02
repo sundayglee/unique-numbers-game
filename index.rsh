@@ -1,6 +1,7 @@
 'reach 0.1';
 
 const NUM_OF_PLAYERS = 10;
+const UNIQUE_SET_LENGTH = 5;
 
 const CommonInterface = {
   kpGoing: Fun([], Bool),
@@ -14,7 +15,7 @@ export const main = Reach.App(() => {
     ...CommonInterface,
     wager: UInt,  
     deadline: UInt,
-    playingSet: Fun([], Array(UInt, 5)),
+    playingSet: Fun([], Array(UInt, UNIQUE_SET_LENGTH)),
     winnersList: Fun([], Array(Object({ addr: Address, selected: UInt, played: Bool, numOfWinners: UInt }), NUM_OF_PLAYERS)),
   });
   const P = ParticipantClass('Player', {
