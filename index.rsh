@@ -71,8 +71,13 @@ export const main = Reach.App(() => {
 
   H.publish(winnersList);
 
-  const reward = balance() 
-  transfer(reward).to(H);
+  const winnersCount = winnersList.length;
+
+  const reward = balance() / winnersCount
+  winnersList.forEach(winner =>
+    transfer(reward).to(winner.addr));
+
+  transfer(balance()).to(H)
   commit();
 
   exit();
