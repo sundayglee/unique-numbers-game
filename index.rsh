@@ -1,83 +1,108 @@
-'reach 0.1';
+"reach 0.1";
 
-const NUM_OF_PLAYERS = 10;
+const NUM_OF_PLAYERS = 2;
 const UNIQUE_SET_LENGTH = 5;
 
 const CommonInterface = {
   kpGoing: Fun([], Bool),
-  uniqueSelected: Fun([], Object({ addr: Address, selected: UInt, played: Bool })),
-  currentPlayedIs: Fun(true, UInt),
+  informTimeout: Fun([], Null),
+  uniqueSelected: Fun(
+    [],
+    Object({ addr: Address, selected: UInt, played: Bool })
+  ),
   log: Fun(true, Null),
 };
 
 export const main = Reach.App(() => {
-  const H = Participant('House', {
+  const House = Participant("House", {
     ...CommonInterface,
-    wager: UInt,  
+    wager: UInt,
     deadline: UInt,
     playingSet: Fun([], Array(UInt, UNIQUE_SET_LENGTH)),
-    winnersList: Fun([], Array(Object({ addr: Address, selected: UInt, played: Bool, numOfWinners: UInt }), NUM_OF_PLAYERS)),
+    recordCurrentPlayer: Fun(true, Bool),
+    winnersList: Fun(
+      [],
+      Array(
+        Object({
+          addr: Address,
+          selected: UInt,
+          played: Bool,
+          numOfWinners: UInt,
+        }),
+        NUM_OF_PLAYERS
+      )
+    ),
   });
-  const P = ParticipantClass('Player', {
+  const Player = ParticipantClass("Player", {
     ...CommonInterface,
+    acceptWager: Fun([UInt], Null),
   });
   deploy();
 
-  H.only(() => {
+  const informTimeout = () => {
+    each([House, Player], () => {
+      interact.informTimeout();
+    });
+  };
+
+  House.only(() => {
     const wager = declassify(interact.wager);
     const playingSet = declassify(interact.playingSet());
     const deadline = declassify(interact.deadline);
   });
 
-  H.publish(wager, playingSet, deadline);
+  House.publish(wager, playingSet, deadline);
+  commit();
 
-  /// parallelReduce
-  const initialPlayedSet = Array.replicate(NUM_OF_PLAYERS, { addr: H, choice: 0 });
+  Player.only(() => {
+    interact.acceptWager(wager);
+  });
+  Player.pay(wager).timeout(relativeTime(deadline), () => closeTo(House, informTimeout));;
 
-  const [keepGoing, bidsPlaced, finalPlayed] =
-    parallelReduce([true, 0, initialPlayedSet])
-      .invariant(balance() == wager * bidsPlaced)
-      .while(keepGoing)
-      .case(
-        P,
-        (() => ({
-          msg: declassify(interact.uniqueSelected()),
-          when: declassify(interact.kpGoing()),
-        })),
-        ((_) => wager),
-        ((_) => {
+  var i = 0;
+  invariant(balance() == wager);
+  while (i < NUM_OF_PLAYERS) {
+    commit();
 
-          const player = this;
+    Player.only(() => {
+      const uniqueSelected = declassify(interact.uniqueSelected());
+    });
+    
+    Player.publish(uniqueSelected);
 
-          const idx = bidsPlaced % NUM_OF_PLAYERS;
-          // P.interact.log(v.addr);
-          const newResponse = Array.set(finalPlayed, idx, { addr: player, choice: 0 });
+    House.only(() => {
+      const advance = declassify(interact.recordCurrentPlayer(uniqueSelected));
+    });
+    commit();
+    House.publish(advance);
 
-          P.only(() => {
-            const ci = declassify(interact.currentPlayedIs(player));
-          });
-
-          return [true, 1 + bidsPlaced, newResponse];
-        }))
-      .timeout(relativeTime(deadline), () => {
-        Anybody.publish();
-        return [false, bidsPlaced, finalPlayed];
-      });
+    if (advance) {
+      i = i + 1;
+      continue;
+    } else {
+      i = i;
+      continue;
+    }
+  }
 
   commit();
-  H.only(() => {
+
+  House.only(() => {
     const winnersList = declassify(interact.winnersList());
   });
 
-  H.publish(winnersList);
+  House.publish(winnersList);
 
-  const winnersCount = winnersList.length;
+  const reward = balance() / NUM_OF_PLAYERS;
 
-  const reward = balance() / winnersCount
-  winnersList.forEach(winner =>
-    transfer(reward).to(winner.addr));
+  winnersList.forEach(winner => {
+    if (winner.addr != winnersList[NUM_OF_PLAYERS - 1].addr) {
+      transfer(reward).to(winner.addr);
+    }
+  });
 
-  transfer(balance()).to(H)
+  transfer(balance()).to(House);
+
   commit();
 
   exit();
