@@ -17,7 +17,7 @@ This game borrows a lot of concept from the Reach Lang tutorial and some of the 
 3. (Optional) Docker Desktop - Windows Only
 4. Make
 
-## Running The Game
+## Getting Started
 
 In order to make things easier, we will not go through how to install the softwares required above since this will depending solely on the kind of system you have. If you require any help, the reach documentation website will help you.
 
@@ -453,6 +453,8 @@ To simplify the code, no assertion of the contract is implimented, aside from th
 ## Possible Additions
 
 One could better improve the game by defining the unique number generation in the backend as well as distribute the fund equally among the winners. 
+
+Also, the unique number each player chooses during progression of the game is not hidden, hence a malicious player could snoop in the blockchain and see what other players have choosen and play another unique number. This could be fixed by using `makeCommitment` of Reach were the players would submit hashes instead of clear text numbers and after every player has choosen their unique numbers, then each one will show their unique choosen number before the winners selection.
 
 But since the Bounty required the player to only choose unique number from predefined number list and distribute the pot among the winners with no specification of how the distribution will be, our implimentation was pretty much limited.
 
