@@ -1,5 +1,12 @@
 "reach 0.1";
 
+/*
+UNIQUE NUMBERS GAME
+Backend File Created by Godfre Laswai(gelaswai@gmail.com) for 
+the Umoja Decentralized Bounty Hack(https://events.reach.sh/decentralized-umoja)
+
+*/
+
 const NUM_OF_PLAYERS = 2;
 const PREDEFINED_SET_LENGTH = 5;
 
