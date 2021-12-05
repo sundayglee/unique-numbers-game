@@ -1,9 +1,17 @@
+/*
+UNIQUE NUMBERS GAME
+FrontEnd File Created by Godfre Laswai(gelaswai@gmail.com) for 
+the Umoja Decentralized Bounty Hack(https://events.reach.sh/decentralized-umoja)
+*/
+
+
 import { loadStdlib } from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs';
 const stdlib = loadStdlib(process.env);
 
 const NUM_OF_PLAYERS = 2;
+const PREDEFINED_SET_LENGTH = 5;
 
 (async () => {
   const isHouse = await ask(
@@ -12,7 +20,7 @@ const NUM_OF_PLAYERS = 2;
   );
   const who = isHouse ? 'House' : 'Player';
 
-  console.log(`Starting Unique Number Game! as ${who}`);
+  console.log(`Starting Unique Numbers Game! as ${who}`);
 
   let acc = null;
   const createAcc = await ask(
@@ -77,7 +85,7 @@ const NUM_OF_PLAYERS = 2;
         return ans
       }
 
-      var playingSet = randomArray(5, 100);
+      var playingSet = randomArray(PREDEFINED_SET_LENGTH, 100);
       console.log(playingSet);
       return playingSet;
     };
@@ -97,7 +105,6 @@ const NUM_OF_PLAYERS = 2;
 
 
   // Game Logic Starts here
-
   let playedDeck = [];
   var winnersTotal = 0;
 
@@ -137,7 +144,6 @@ const NUM_OF_PLAYERS = 2;
       } else {
         adv = false;
       }
-     // console.log(playedDeck + 'and adv: ' + adv + ' and alreadyPlayed: ' + alreadyPlayed);
       return adv;
     }
   }

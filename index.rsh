@@ -1,16 +1,27 @@
 "reach 0.1";
 
 const NUM_OF_PLAYERS = 2;
-const UNIQUE_SET_LENGTH = 5;
+const PREDEFINED_SET_LENGTH = 5;
 
 const CommonInterface = {
-  kpGoing: Fun([], Bool),
   informTimeout: Fun([], Null),
   uniqueSelected: Fun(
     [],
     Object({ addr: Address, selected: UInt, played: Bool })
   ),
   log: Fun(true, Null),
+  winnersList: Fun(
+    [],
+    Array(
+      Object({
+        addr: Address,
+        selected: UInt,
+        played: Bool,
+        numOfWinners: UInt,
+      }),
+      NUM_OF_PLAYERS
+    )
+  ),
 };
 
 export const main = Reach.App(() => {
@@ -18,20 +29,8 @@ export const main = Reach.App(() => {
     ...CommonInterface,
     wager: UInt,
     deadline: UInt,
-    playingSet: Fun([], Array(UInt, UNIQUE_SET_LENGTH)),
-    recordCurrentPlayer: Fun(true, Bool),
-    winnersList: Fun(
-      [],
-      Array(
-        Object({
-          addr: Address,
-          selected: UInt,
-          played: Bool,
-          numOfWinners: UInt,
-        }),
-        NUM_OF_PLAYERS
-      )
-    ),
+    playingSet: Fun([], Array(UInt, PREDEFINED_SET_LENGTH)),
+    recordCurrentPlayer: Fun(true, Bool)
   });
   const Player = ParticipantClass("Player", {
     ...CommonInterface,
@@ -87,11 +86,11 @@ export const main = Reach.App(() => {
 
   commit();
 
-  House.only(() => {
+  each([House, Player], () => {
     const winnersList = declassify(interact.winnersList());
   });
 
-  House.publish(winnersList);
+  Anybody.publish(winnersList);
 
   const reward = balance() / NUM_OF_PLAYERS;
 
